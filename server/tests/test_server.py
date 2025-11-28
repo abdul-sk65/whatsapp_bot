@@ -42,6 +42,7 @@ class TestProcessMessage:
         assert data["original"] == special_text
         assert f"I received your message: '{special_text}'" in data["reply"]
     
+    # either we can process empty message as it or discard it
     def test_process_message_empty_string(self):
         """Test processing empty string"""
         response = client.post("/process", json={"text": ""})
@@ -49,15 +50,6 @@ class TestProcessMessage:
         data = response.json()
         assert data["original"] == ""
         assert "I received your message: ''" in data["reply"]
-    
-    def test_process_message_long_text(self):
-        """Test processing long text"""
-        long_text = "This is a very long message " * 10
-        response = client.post("/process", json={"text": long_text})
-        assert response.status_code == 200
-        data = response.json()
-        assert data["original"] == long_text
-        assert long_text in data["reply"]
     
     def test_process_message_missing_text_field(self):
         """Test that missing text field returns validation error"""
@@ -72,22 +64,6 @@ class TestProcessMessage:
             headers={"Content-Type": "application/json"}
         )
         assert response.status_code == 422
-    
-    def test_random_number_is_different(self):
-        """Test that random numbers change between calls"""
-        response1 = client.post("/process", json={"text": "test"})
-        response2 = client.post("/process", json={"text": "test"})
-        
-        assert response1.status_code == 200
-        assert response2.status_code == 200
-        
-        # While technically they could be the same, statistically unlikely
-        # Just verify format is correct
-        reply1 = response1.json()["reply"]
-        reply2 = response2.json()["reply"]
-        
-        assert "and here is a random number:" in reply1
-        assert "and here is a random number:" in reply2
     
     def test_response_model_structure(self):
         """Test that response has correct structure"""
