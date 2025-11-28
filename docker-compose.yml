@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    container_name: wa_server
+    ports:
+      - "8001:8001"
+    networks:
+      - whatsapp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  router:
+    build: ./router
+    container_name: wa_router
+    ports:
+      - "8000:8000"
+    environment:
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
+      SERVER_BASE_URL: "http://server:8001"
+    depends_on:
+      - server
+    networks:
+      - whatsapp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  whatsapp-network:
+    driver: bridge
