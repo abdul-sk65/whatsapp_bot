@@ -17,7 +17,7 @@ class MessageIn(BaseModel):
     """Input message schema"""
     text: str
 
-    class Config:
+    class ConfigDict:
         json_schema_extra = {
             "example": {
                 "text": "hello there"
@@ -30,7 +30,7 @@ class MessageOut(BaseModel):
     original: str
     reply: str
 
-    class Config:
+    class ConfigDict:
         json_schema_extra = {
             "example": {
                 "original": "hello there",
