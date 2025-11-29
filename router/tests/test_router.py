@@ -2,13 +2,13 @@
 Router Service - Tests
 Tests for WhatsApp webhook handling and routing.
 """
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.utils.parser import extract_message_data
-
 
 client = TestClient(app)
 
@@ -130,11 +130,8 @@ class TestWebhookReceiver:
         assert response.status_code == 200
         assert response.json()["status"] == "ignored"
 
-    @patch("app.services.backend_service.call_server_backend", return_value="Reply text")
-    @patch("app.services.whatsapp_service.wa")
-    def test_webhook_processes_valid_message(self, mock_wa, mock_call_server):
-        mock_wa.send_message = MagicMock()
-
+    @patch("app.api.webhook.call_backend", new_callable=AsyncMock, return_value="Reply text")
+    def test_webhook_processes_valid_message(self, mock_call_server, mock_whatsapp):
         payload = {
             "entry": [{
                 "changes": [{
@@ -143,10 +140,10 @@ class TestWebhookReceiver:
                             "from": "1234567890",
                             "text": {"body": "test"}
                         }]
-                    }
+                    }}]
                 }]
-            }]
-        }
+            }
+        
 
         response = client.post("/webhook", json=payload)
 
@@ -154,13 +151,13 @@ class TestWebhookReceiver:
         assert response.json()["status"] == "ok"
 
         mock_call_server.assert_called_once_with("test")
-        mock_wa.send_message.assert_called_once()
+        mock_whatsapp.send_message.assert_called_once_with(
+            to="1234567890",
+            text="Reply text"
+        )
 
-    @patch("app.services.backend_service.call_server_backend", side_effect=Exception("Server error"))
-    @patch("app.services.whatsapp_service.wa")
-    def test_webhook_handles_server_error(self, mock_wa, mock_call_server):
-        mock_wa.send_message = MagicMock()
-
+    @patch("app.api.webhook.call_backend", new_callable=AsyncMock, side_effect=Exception("Server error"))
+    def test_webhook_handles_server_error(self, mock_call_server, mock_whatsapp):
         payload = {
             "entry": [{
                 "changes": [{
@@ -169,22 +166,19 @@ class TestWebhookReceiver:
                             "from": "123",
                             "text": {"body": "test"}
                         }]
-                    }
+                    }}]
                 }]
-            }]
-        }
+            }
+        
 
         response = client.post("/webhook", json=payload)
 
         assert response.status_code == 200
         assert response.json()["status"] == "error"
-        mock_wa.send_message.assert_not_called()
+        mock_whatsapp.send_message.assert_not_called()
 
-    @patch("app.services.backend_service.call_server_backend", return_value="Reply with emoji 😊")
-    @patch("app.services.whatsapp_service.wa")
-    def test_webhook_with_special_characters(self, mock_wa, mock_call_server):
-        mock_wa.send_message = MagicMock()
-
+    @patch("app.api.webhook.call_backend", new_callable=AsyncMock, return_value="Reply with emoji 😊")
+    def test_webhook_with_special_characters(self, mock_call_server, mock_whatsapp):
         payload = {
             "entry": [{
                 "changes": [{
@@ -193,13 +187,17 @@ class TestWebhookReceiver:
                             "from": "123",
                             "text": {"body": "Hello 😊"}
                         }]
-                    }
+                    }}]
                 }]
-            }]
-        }
+            }
+        
 
         response = client.post("/webhook", json=payload)
 
         assert response.status_code == 200
         assert response.json()["status"] == "ok"
         mock_call_server.assert_called_once_with("Hello 😊")
+        mock_whatsapp.send_message.assert_called_once_with(
+            to="123",
+            text="Reply with emoji 😊"
+        )
