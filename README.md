@@ -51,8 +51,8 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd whatsapp-router
+git clone https://github.com/abdul-sk65/whatsapp_bot.git
+cd whatsapp_bot
 
 # Copy environment file
 cp .env.example .env
@@ -153,7 +153,30 @@ uv run pytest --cov=app --cov-report=html
 ├── router/                      # Router microservice
 │   ├── app/
 │   │   ├── __init__.py
-│   │   └── main.py             # FastAPI app + PyWA integration
+│   │   ├── main.py                     # FastAPI app: includes routers, startup, PyWA init
+│   │
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   └── webhook.py              # GET verify + POST webhook
+│   │
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── config.py               # Settings, env vars
+│   │   │   └── logging_config.py       # Logging setup
+│   │
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── schemas.py              # Pydantic Request/Response schemas
+│   │
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── backend_service.py      # call_server_backend(message)
+│   │   │   └── whatsapp_service.py     # wa = WhatsApp(...), send_message()
+│   │
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   ├── parser.py               # extract_message_data()
+│   │   │   └── helpers.py              # misc utilities if needed
 │   ├── tests/
 │   │   └── test_router.py      # Router tests
 │   ├── Dockerfile
