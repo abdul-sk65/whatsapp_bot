@@ -338,18 +338,6 @@ uv run pytest tests/test_router.py::TestWebhookReceiver -v
 4. **No Database**: Message history is not stored. Add a database for persistence.
 5. **Basic Error Handling**: Production systems should have more robust error handling and retry logic.
 
-## 🔮 Future Improvements
-
-- [ ] Add database for message persistence
-- [ ] Implement message queue for better scaling
-- [ ] Support media messages (images, videos, documents)
-- [ ] Add rate limiting
-- [ ] Implement conversation context tracking
-- [ ] Add monitoring and metrics (Prometheus/Grafana)
-- [ ] Add CI/CD pipeline
-- [ ] Deploy to cloud (AWS/GCP/Azure)
-- [ ] Add authentication for internal API calls
-- [ ] Implement message templates
 
 ## 📝 License
 
